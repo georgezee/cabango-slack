@@ -1,5 +1,4 @@
 var Botkit = require('botkit');
-var acronym = require('./acronym');
 var game = require('./game');
 
 
@@ -33,7 +32,7 @@ controller.setupWebserver(process.env.PORT || 5000, function (err, webserver) {
 
 controller.on('slash_command',function(bot, message) {
   console.log(message);
-  bot.replyPublic(message, acronym.generateAcronym());
+  bot.replyPublic(message, 'Command: ' + mesage.command + ' Message: ' + message.text);
 });
 
 
