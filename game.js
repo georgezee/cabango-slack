@@ -8,6 +8,9 @@ var Game = function () {
 };
 
 Game.prototype.startGame = function (controller) {
+  this.votes = {};
+  this.guesses = {};
+
   controller.storage.teams.all(function (err, teams) {
     for (var t in teams) {
       if (teams[t].incoming_webhook) {
@@ -20,7 +23,6 @@ Game.prototype.startGame = function (controller) {
           }
         ]);
 
-        this.guesses = {};
         this.state = 'guessing';
 
         setTimeout(function () {
@@ -35,6 +37,8 @@ Game.prototype.startGame = function (controller) {
 
           setTimeout(function () {
             sendMessage(controller, teams[t], 'Winner: First Answer');
+
+            this.state = 'finished';
 
           }.bind(this), 45000)
         }.bind(this), 60000);

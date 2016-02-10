@@ -19,6 +19,12 @@ controller.setupWebserver(process.env.PORT || 5000, function (err, webserver) {
 
   game.startGame(controller);
 
+  setInterval(function () {
+    if (game.state === 'finished') {
+      game.startGame(controller);
+    }
+  }, 1000);
+
   controller.createOauthEndpoints(controller.webserver, function (err, req, res) {
     if (err) {
       res.status(500).send('ERROR: ' + err);
