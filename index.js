@@ -72,3 +72,25 @@ controller.on('create_incoming_webhook', function (bot, webhook_config) {
   });
 });
 
+
+function generateAcronym() {
+   // We can extend this later to accomodate different character ranges.
+  return generateAcronymRange(3,4);
+}
+
+function generateAcronymRange(minLetters, maxLetters) {
+
+  // Default character set for English.
+  baseStr = "AAAAAAAAAABBBBBCCCCCDDDDEEFFFFGGGGHHHHHHHIIIJJKLLLLMMMMNNNNOOOOPPPPQRRSSSSSSSTTTTTTTTTTUVWWWWWXYYZL";
+  word = "";
+
+  numLetters = Math.round(Math.random() * (maxLetters - minLetters)) + minLetters;
+  for (i = 0; i < numLetters; i++)
+  {
+    letterIndex = Math.floor(Math.random() * baseStr.length);
+    word = word + baseStr[letterIndex] + ".";
+  }
+  console.log('Acronym generated: ' + word);
+  return word;
+}
+
