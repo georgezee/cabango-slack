@@ -16,7 +16,7 @@ controller.setupWebserver(process.env.PORT || 5000, function (err, webserver) {
   controller.createWebhookEndpoints(webserver);
   var game = new Game(controller);
 
-  game.startGame(controller);
+  //game.startGame(controller);
 
   controller.createOauthEndpoints(controller.webserver, function (err, req, res) {
     if (err) {
@@ -42,15 +42,15 @@ controller.on('create_incoming_webhook', function (bot, webhook_config) {
 });
 
 // Allow us to accept commands here as well, for ease of debugging.
-var bot = controller.spawn({
-  token: process.env.BOT_TOKEN
-});
-
-bot.startRTM(function(err, bot, payload) {
-  if (err) {
-    throw new Error('Could not connect to Slack');
-  }
-});
+//var bot = controller.spawn({
+//  token: process.env.BOT_TOKEN
+//});
+//
+//bot.startRTM(function(err, bot, payload) {
+//  if (err) {
+//    throw new Error('Could not connect to Slack');
+//  }
+//});
 
 // give the bot something to listen for.
 controller.hears('guess', 'direct_message,direct_mention,mention', function (bot, message) {
