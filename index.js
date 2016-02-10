@@ -1,31 +1,69 @@
-var Botkit = require('botkit');
-var controller = Botkit.slackbot();
+var Botkit = require('../lib/Botkit.js');
 
-var bot = controller.spawn({
-  token: process.env.BOT_TOKEN
-});
+if (!process.env.clientId || !process.env.clientSecret || !process.env.port) {
+  console.log('Error: Specify clientId clientSecret and port in environment');
+  process.exit(1);
+}
 
-bot.startRTM(function (err, bot, payload) {
-  if (err) {
-    throw new Error('Could not connect to Slack');
+var controller = Botkit.slackbot({
+  json_file_store: './db/'
+}).configureSlackApp(
+  {
+    clientId: process.env.CLIENT_ID,
+    clientSecret: process.env.CLIENT_SECRET,
+    scopes: ['incoming-webhook']
   }
+);
+
+controller.setupWebserver(process.env.port, function (err, webserver) {
+
+
+  webserver.get('/', function (req, res) {
+
+    var html = '<h1>Super Insecure Form</h1><p>Put text below and hit send - it will be sent to every team who has added your integration.</p><form method="post" action="/unsafe_endpoint"><input type="text" name="text" /><input type="submit"/></form>';
+    res.send(html);
+
+  });
+
+  // This is a completely insecure form which would enable
+  // anyone on the internet who found your node app to
+  // broadcast to all teams who have added your integration.
+  // it is included for demonstration purposes only!!!
+  webserver.post('/unsafe_endpoint', function (req, res) {
+    var text = req.body.text;
+    text = text.trim();
+
+    controller.storage.teams.all(function (err, teams) {
+      var count = 0;
+      for (var t in teams) {
+        if (teams[t].incoming_webhook) {
+          count++;
+          controller.spawn(teams[t]).sendWebhook({
+            text: text
+          }, function (err) {
+            if (err) {
+              console.log(err);
+            }
+          });
+        }
+      }
+
+      res.send('Message sent to ' + count + ' teams!');
+    });
+  });
+
+  controller.createOauthEndpoints(controller.webserver, function (err, req, res) {
+    if (err) {
+      res.status(500).send('ERROR: ' + err);
+    } else {
+      res.send('Success!');
+    }
+  });
 });
 
-// give the bot something to listen for.
-controller.hears('hello', 'direct_message,direct_mention,mention', function (bot, message) {
 
-  bot.reply(message, 'Hello yourself.');
+controller.on('create_incoming_webhook', function (bot, webhook_config) {
+  bot.sendWebhook({
+    text: ':thumbsup: Incoming webhook successfully configured'
+  });
 });
-
-controller.setupWebserver(process.env.PORT || 5000, function(err, express_webserver) {
-  controller.createWebhookEndpoints(express_webserver)
-});
-
-controller.on('guess', function(bot, message) {
-
-  // reply to slash command
-  bot.replyPublic(message,'Everyone can see this part of the slash command');
-  bot.replyPrivate(message,'Only the person who used the slash command can see this.');
-
-});
-
