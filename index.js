@@ -1,5 +1,5 @@
 var Botkit = require('botkit');
-var game = require('./game');
+var Game = require('./game');
 
 
 var controller = Botkit.slackbot({
@@ -14,10 +14,9 @@ var controller = Botkit.slackbot({
 
 controller.setupWebserver(process.env.PORT || 5000, function (err, webserver) {
   controller.createWebhookEndpoints(webserver);
+  var game = new Game(controller);
 
-  //setInterval(function () {
-  //  game.startGame(controller);
-  //}, 10000);
+  game.startGame(controller);
 
   controller.createOauthEndpoints(controller.webserver, function (err, req, res) {
     if (err) {
