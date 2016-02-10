@@ -1,5 +1,6 @@
 var Botkit = require('botkit');
 var acronym = require('./acronym');
+var game = require('./game');
 
 
 var controller = Botkit.slackbot({
@@ -13,42 +14,11 @@ var controller = Botkit.slackbot({
 );
 
 controller.setupWebserver(process.env.PORT || 5000, function (err, webserver) {
-
   controller.createWebhookEndpoints(webserver);
 
-  webserver.get('/', function (req, res) {
-
-    var html = '<h1>Super Insecure Form</h1><p>Put text below and hit send - it will be sent to every team who has added your integration.</p><form method="post" action="/unsafe_endpoint"><input type="text" name="text" /><input type="submit"/></form>';
-    res.send(html);
-
-  });
-
-  // This is a completely insecure form which would enable
-  // anyone on the internet who found your node app to
-  // broadcast to all teams who have added your integration.
-  // it is included for demonstration purposes only!!!
-  webserver.post('/unsafe_endpoint', function (req, res) {
-    var text = req.body.text;
-    text = text.trim();
-
-    controller.storage.teams.all(function (err, teams) {
-      var count = 0;
-      for (var t in teams) {
-        if (teams[t].incoming_webhook) {
-          count++;
-          controller.spawn(teams[t]).sendWebhook({
-            text: text
-          }, function (err) {
-            if (err) {
-              console.log(err);
-            }
-          });
-        }
-      }
-
-      res.send('Message sent to ' + count + ' teams!');
-    });
-  });
+  setInterval(function () {
+    game.startGame(controller);
+  }, 10000);
 
   controller.createOauthEndpoints(controller.webserver, function (err, req, res) {
     if (err) {
@@ -62,6 +32,7 @@ controller.setupWebserver(process.env.PORT || 5000, function (err, webserver) {
 });
 
 controller.on('slash_command',function(bot, message) {
+  console.log(message);
   bot.replyPublic(message, acronym.generateAcronym());
 });
 
