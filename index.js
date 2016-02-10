@@ -43,7 +43,7 @@ controller.on('slash_command',function(bot, message) {
       game.addVote(message.text);
       break;
 
-    case '/':
+    case '/guess':
       game.addGuess(message.user_name, message.text);
       break;
   }
