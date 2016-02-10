@@ -16,9 +16,9 @@ var controller = Botkit.slackbot({
 controller.setupWebserver(process.env.PORT || 5000, function (err, webserver) {
   controller.createWebhookEndpoints(webserver);
 
-  setInterval(function () {
-    game.startGame(controller);
-  }, 10000);
+  //setInterval(function () {
+  //  game.startGame(controller);
+  //}, 10000);
 
   controller.createOauthEndpoints(controller.webserver, function (err, req, res) {
     if (err) {
