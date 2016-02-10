@@ -60,10 +60,10 @@ controller.setupWebserver(process.env.PORT || 5000, function (err, webserver) {
 
 });
 
-controller.on('guess',function(bot,message) {
+controller.on('/guess',function(bot, message) {
 
   // reply to slash command
-  bot.replyPublic(message,'Everyone can see the results of this slash command');
+  bot.replyPublic(message, 'Everyone can see the results of this slash command');
 });
 
 
