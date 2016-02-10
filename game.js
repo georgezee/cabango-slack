@@ -1,5 +1,6 @@
 var acronym = require('./acronym');
 var async = require('async');
+var _ = require('lodash');
 
 var Game = function () {
   this.state = 'created';
@@ -14,6 +15,7 @@ Game.prototype.startGame = function (controller) {
   controller.storage.teams.all(function (err, teams) {
     for (var t in teams) {
       if (teams[t].incoming_webhook) {
+        // TODO: Find a better way than calling send message multiple times
         async.series([
           function (callback) {
             sendMessage(controller, teams[t], 'New Game starting...', callback)
@@ -39,8 +41,13 @@ Game.prototype.startGame = function (controller) {
           this.state = 'voting';
 
           setTimeout(function () {
-            sendMessage(controller, teams[t], 'Winner: First Answer', function () {
-              console.log('Finished');
+            var pairs = _.toPairs(this.votes);
+            var winner = _.maxBy(pairs, function (score) {
+              return score[1];
+            })[0];
+            
+            sendMessage(controller, teams[t], 'Winner: ' + winner, function () {
+               console.log('Finished');
             });
 
             this.state = 'finished';
@@ -53,7 +60,6 @@ Game.prototype.startGame = function (controller) {
 };
 
 Game.prototype.addGuess = function (user, guess) {
-  console.log('State', this.state);
   if (this.state === 'guessing') {
     this.guesses[user] = guess;
     this.votes[user] = 0;
@@ -62,9 +68,9 @@ Game.prototype.addGuess = function (user, guess) {
 };
 
 Game.prototype.addVote = function (user) {
-  console.log('Stete', this.state);
-  if (this.state === 'voting') {
+  if (this.state === 'voting' && _.has(this.votes, user)) {
     this.votes[user]++;
+    console.log('Votes', this.votes);
   }
 };
 
