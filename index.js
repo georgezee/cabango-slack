@@ -1,4 +1,5 @@
 var Botkit = require('botkit');
+var acronym = require('./acronym');
 
 
 var controller = Botkit.slackbot({
@@ -61,11 +62,8 @@ controller.setupWebserver(process.env.PORT || 5000, function (err, webserver) {
 });
 
 controller.on('slash_command',function(bot, message) {
-
-  // reply to slash command
-  bot.replyPublic(message, 'Everyone can see the results of this slash command');
+  bot.replyPublic(message, acronym.generateAcronym());
 });
-
 
 
 controller.on('create_incoming_webhook', function (bot, webhook_config) {
@@ -73,26 +71,4 @@ controller.on('create_incoming_webhook', function (bot, webhook_config) {
     text: ':thumbsup: Incoming webhook successfully configured'
   });
 });
-
-
-function generateAcronym() {
-   // We can extend this later to accomodate different character ranges.
-  return generateAcronymRange(3,4);
-}
-
-function generateAcronymRange(minLetters, maxLetters) {
-
-  // Default character set for English.
-  baseStr = "AAAAAAAAAABBBBBCCCCCDDDDEEFFFFGGGGHHHHHHHIIIJJKLLLLMMMMNNNNOOOOPPPPQRRSSSSSSSTTTTTTTTTTUVWWWWWXYYZL";
-  word = "";
-
-  numLetters = Math.round(Math.random() * (maxLetters - minLetters)) + minLetters;
-  for (i = 0; i < numLetters; i++)
-  {
-    letterIndex = Math.floor(Math.random() * baseStr.length);
-    word = word + baseStr[letterIndex] + ".";
-  }
-  console.log('Acronym generated: ' + word);
-  return word;
-}
 
