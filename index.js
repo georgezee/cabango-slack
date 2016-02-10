@@ -15,12 +15,6 @@ controller.setupWebserver(process.env.PORT || 5000, function (err, webserver) {
 
   controller.createWebhookEndpoints(webserver);
 
-  controller.on('guess',function(bot,message) {
-
-    // reply to slash command
-    bot.replyPublic(message,'Everyone can see the results of this slash command');
-  });
-
   webserver.get('/', function (req, res) {
 
     var html = '<h1>Super Insecure Form</h1><p>Put text below and hit send - it will be sent to every team who has added your integration.</p><form method="post" action="/unsafe_endpoint"><input type="text" name="text" /><input type="submit"/></form>';
@@ -65,6 +59,13 @@ controller.setupWebserver(process.env.PORT || 5000, function (err, webserver) {
 
 
 });
+
+controller.on('guess',function(bot,message) {
+
+  // reply to slash command
+  bot.replyPublic(message,'Everyone can see the results of this slash command');
+});
+
 
 
 controller.on('create_incoming_webhook', function (bot, webhook_config) {
