@@ -64,7 +64,7 @@ controller.on('create_incoming_webhook', function (bot, webhook_config) {
   });
 });
 
-controller.on('vote',function(bot,message) {
+controller.on('guess',function(bot,message) {
 
   // reply to slash command
   bot.replyPublic(message,'Everyone can see the results of this slash command');
