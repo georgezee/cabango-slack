@@ -27,8 +27,11 @@ Game.prototype.startGame = function (controller) {
 
         setTimeout(function () {
           sendMessage(controller, teams[t], 'Choose Best Answer: ', function () {
+            console.log(this.guesses);
+
             async.forEachOfSeries(this.guesses, function (guess, user, callback) {
               var message = user + ' - ' + guess;
+              console.log(message);
               sendMessage(controller, teams[t], message, callback);
             })
           }.bind(this));
@@ -51,6 +54,7 @@ Game.prototype.addGuess = function (user, guess) {
   if (this.state === 'guessing') {
     this.guesses[user] = guess;
     this.votes[user] = 0;
+    console.log(this.guesses);
   }
 };
 

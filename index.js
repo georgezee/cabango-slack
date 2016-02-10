@@ -21,6 +21,7 @@ controller.setupWebserver(process.env.PORT || 5000, function (err, webserver) {
 
   setInterval(function () {
     if (game.state === 'finished') {
+      game.state = 'starting';
       game.startGame(controller);
     }
   }, 1000);
