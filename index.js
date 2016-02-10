@@ -1,9 +1,5 @@
-var Botkit = require('../lib/Botkit.js');
+var Botkit = require('botkit');
 
-if (!process.env.clientId || !process.env.clientSecret || !process.env.port) {
-  console.log('Error: Specify clientId clientSecret and port in environment');
-  process.exit(1);
-}
 
 var controller = Botkit.slackbot({
   json_file_store: './db/'
@@ -15,7 +11,7 @@ var controller = Botkit.slackbot({
   }
 );
 
-controller.setupWebserver(process.env.port, function (err, webserver) {
+controller.setupWebserver(process.env.PORT || 5000, function (err, webserver) {
 
 
   webserver.get('/', function (req, res) {
