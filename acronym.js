@@ -3,7 +3,7 @@ module.exports = {
 };
 
 function generateAcronym() {
-  // We can extend this later to accomodate different character ranges.
+  // We can extend this later to accommodate different character ranges.
   return generateAcronymRange(3,4);
 }
 
