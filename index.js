@@ -63,3 +63,9 @@ controller.on('create_incoming_webhook', function (bot, webhook_config) {
     text: ':thumbsup: Incoming webhook successfully configured'
   });
 });
+
+controller.on('vote',function(bot,message) {
+
+  // reply to slash command
+  bot.replyPublic(message,'Everyone can see the results of this slash command');
+});
