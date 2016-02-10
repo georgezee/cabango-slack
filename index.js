@@ -57,6 +57,12 @@ controller.setupWebserver(process.env.PORT || 5000, function (err, webserver) {
   });
 
   controller.createWebhookEndpoints(webserver);
+
+  controller.on('guess',function(bot,message) {
+
+    // reply to slash command
+    bot.replyPublic(message,'Everyone can see the results of this slash command');
+  });
 });
 
 
@@ -66,8 +72,3 @@ controller.on('create_incoming_webhook', function (bot, webhook_config) {
   });
 });
 
-controller.on('guess',function(bot,message) {
-
-  // reply to slash command
-  bot.replyPublic(message,'Everyone can see the results of this slash command');
-});
