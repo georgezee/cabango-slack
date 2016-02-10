@@ -1,8 +1,5 @@
 var Botkit = require('botkit');
-
-var controller = Botkit.slackbot({
-  json_file_store: './db/'
-}).configureSlackApp();
+var controller = Botkit.slackbot();
 
 var bot = controller.spawn({
   token: process.env.BOT_TOKEN
@@ -20,12 +17,15 @@ controller.hears('hello', 'direct_message,direct_mention,mention', function (bot
   bot.reply(message, 'Hello yourself.');
 });
 
-controller.setupWebserver(process.env.PORT || 5000, function (err, express_webserver) {
+controller.setupWebserver(process.env.PORT || 5000, function(err, express_webserver) {
   controller.createWebhookEndpoints(express_webserver)
 });
 
-controller.on('vote', function (bot, message) {
+controller.on('guess', function(bot, message) {
+
   // reply to slash command
-  bot.reply(message,'Everyone can see this part of the slash command');
+  bot.replyPublic(message,'Everyone can see this part of the slash command');
+  bot.replyPrivate(message,'Only the person who used the slash command can see this.');
+
 });
 
