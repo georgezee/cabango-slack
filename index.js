@@ -12,11 +12,12 @@ var controller = Botkit.slackbot({
   }
 );
 
+var game = new Game();
+
 controller.setupWebserver(process.env.PORT || 5000, function (err, webserver) {
   controller.createWebhookEndpoints(webserver);
-  var game = new Game(controller);
 
-  //game.startGame(controller);
+  game.startGame(controller);
 
   controller.createOauthEndpoints(controller.webserver, function (err, req, res) {
     if (err) {
@@ -30,7 +31,15 @@ controller.setupWebserver(process.env.PORT || 5000, function (err, webserver) {
 });
 
 controller.on('slash_command',function(bot, message) {
-  console.log(message);
+  switch (message.command) {
+    case '/vote':
+      game.addVote(message.text);
+      break;
+
+    case '/':
+      game.addGuess(message.user_name, message.text);
+      break;
+  }
   bot.replyPublic(message, 'Command: ' + message.command + ' Message: ' + message.text);
 });
 
@@ -53,6 +62,6 @@ controller.on('create_incoming_webhook', function (bot, webhook_config) {
 //});
 
 // give the bot something to listen for.
-controller.hears('guess', 'direct_message,direct_mention,mention', function (bot, message) {
-  bot.reply(message, '<-- your guess.');
-});
+//controller.hears('guess', 'direct_message,direct_mention,mention', function (bot, message) {
+//  bot.reply(message, '<-- your guess.');
+//});

@@ -1,47 +1,59 @@
 var acronym = require('./acronym');
 var async = require('async');
 
-var Game = function (controller) {
+var Game = function () {
   this.state = 'created';
-  this.controller = controller;
+  this.guesses = {};
+  this.votes = {};
 };
 
-Game.prototype.startGame = function () {
-  this.controller.storage.teams.all(function (err, teams) {
+Game.prototype.startGame = function (controller) {
+  controller.storage.teams.all(function (err, teams) {
     for (var t in teams) {
       if (teams[t].incoming_webhook) {
         async.series([
           function (callback) {
-            sendMessage(teams[t], 'New Game starting...', callback)
+            sendMessage(controller, teams[t], 'New Game starting...', callback)
           },
           function (callback) {
-            sendMessage(teams[t], acronym.generateAcronym(), callback)
+            sendMessage(controller, teams[t], acronym.generateAcronym(), callback)
           }
         ]);
+
+        this.guesses = {};
         this.state = 'guessing';
 
         setTimeout(function () {
-          async.series([
-            function (callback) {
-              sendMessage(teams[t], 'Choose Best Answer: ', callback);
-            },
-            function (callback) {
-              sendMessage(teams[t], '1. First Answer', callback);
-            },
-            function (callback) {
-              sendMessage(teams[t], '2. Second Answer', callback);
-            }
-          ]);
+          sendMessage(controller, teams[t], 'Choose Best Answer: ', function () {
+            async.forEachOfSeries(this.guesses, function (guess, user, callback) {
+              var message = user + ' - ' + guess;
+              sendMessage(controller, teams[t], message, callback);
+            })
+          }.bind(this));
+
           this.state = 'voting';
 
           setTimeout(function () {
-            sendMessage(teams[t], 'Winner: First Answer');
+            sendMessage(controller, teams[t], 'Winner: First Answer');
 
           }.bind(this), 45000)
         }.bind(this), 60000);
       }
     }
   }.bind(this));
+};
+
+Game.prototype.addGuess = function (user, guess) {
+  if (this.state === 'guessing') {
+    this.guesses[user] = guess;
+    this.votes[user] = 0;
+  }
+};
+
+Game.prototype.addVote = function (user) {
+  if (this.state === 'voting') {
+    this.votes[user]++;
+  }
 };
 
 function sendMessage (controller, team, message, callback) {
@@ -58,6 +70,5 @@ function sendMessage (controller, team, message, callback) {
     });
   }
 }
-
 
 module.exports = Game;
