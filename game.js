@@ -27,7 +27,7 @@ Game.prototype.startGame = function (controller) {
 
         setTimeout(function () {
           sendMessage(controller, teams[t], 'Choose Best Answer: ', function () {
-            console.log(this.guesses);
+            console.log('Guesses', this.guesses);
 
             async.forEachOfSeries(this.guesses, function (guess, user, callback) {
               var message = user + ' - ' + guess;
@@ -39,7 +39,9 @@ Game.prototype.startGame = function (controller) {
           this.state = 'voting';
 
           setTimeout(function () {
-            sendMessage(controller, teams[t], 'Winner: First Answer');
+            sendMessage(controller, teams[t], 'Winner: First Answer', function () {
+              console.log('Finished');
+            });
 
             this.state = 'finished';
 
@@ -51,14 +53,16 @@ Game.prototype.startGame = function (controller) {
 };
 
 Game.prototype.addGuess = function (user, guess) {
+  console.log('State', this.state);
   if (this.state === 'guessing') {
     this.guesses[user] = guess;
     this.votes[user] = 0;
-    console.log(this.guesses);
+    console.log('Guesses', this.guesses);
   }
 };
 
 Game.prototype.addVote = function (user) {
+  console.log('Stete', this.state);
   if (this.state === 'voting') {
     this.votes[user]++;
   }
