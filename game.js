@@ -1,4 +1,5 @@
 var acronym = require('./acronym');
+var async = require('async');
 
 var Game = function (controller) {
   this.state = 'created';
@@ -9,23 +10,32 @@ Game.prototype.startGame = function () {
   this.controller.storage.teams.all(function (err, teams) {
     for (var t in teams) {
       if (teams[t].incoming_webhook) {
-        this._sendMessage(teams[t], 'New Game starting...');
-        this._sendMessage(teams[t], acronym.generateAcronym());
+        async.series([
+          function (callback) {
+            sendMessage(teams[t], 'New Game starting...', callback)
+          },
+          function (callback) {
+            sendMessage(teams[t], acronym.generateAcronym(), callback)
+          }
+        ]);
         this.state = 'guessing';
 
         setTimeout(function () {
-          this._sendMessage(teams[t], 'Choose Best Answer: ');
-          this._sendMessage(teams[t], '1. First Answer');
-          this._sendMessage(teams[t], '2. Second Answer');
-          // Display answers
-
+          async.series([
+            function (callback) {
+              sendMessage(teams[t], 'Choose Best Answer: ', callback);
+            },
+            function (callback) {
+              sendMessage(teams[t], '1. First Answer', callback);
+            },
+            function (callback) {
+              sendMessage(teams[t], '2. Second Answer', callback);
+            }
+          ]);
           this.state = 'voting';
 
           setTimeout(function () {
-            this._sendMessage(teams[t], 'Winner: ');
-            this._sendMessage(teams[t], '1. First Answer');
-            this._sendMessage(teams[t], '2. Second Answer');
-            // Display Results
+            sendMessage(teams[t], 'Winner: First Answer');
 
           }.bind(this), 45000)
         }.bind(this), 60000);
@@ -34,18 +44,20 @@ Game.prototype.startGame = function () {
   }.bind(this));
 };
 
-Game.prototype._sendMessage = function (team, message) {
-    if (team.incoming_webhook) {
-      this.controller.spawn(team).sendWebhook({
-        text: message
-      }, function (err) {
-        if (err) {
-          console.log(err);
-        }
-      });
-    }
-  };
-
+function sendMessage (controller, team, message, callback) {
+  if (team.incoming_webhook) {
+    controller.spawn(team).sendWebhook({
+      text: message
+    }, function (err) {
+      if (err) {
+        console.log(err);
+        callback(err);
+      } else {
+        callback();
+      }
+    });
+  }
+}
 
 
 module.exports = Game;

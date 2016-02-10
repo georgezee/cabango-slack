@@ -44,8 +44,9 @@ controller.on('create_incoming_webhook', function (bot, webhook_config) {
 // Allow us to accept commands here as well, for ease of debugging.
 var bot = controller.spawn({
   token: process.env.BOT_TOKEN
-})
-bot.startRTM(function(err,bot,payload) {
+});
+
+bot.startRTM(function(err, bot, payload) {
   if (err) {
     throw new Error('Could not connect to Slack');
   }
