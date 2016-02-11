@@ -66,7 +66,9 @@ Game.prototype.startRound = function () {
         // TODO: Find a better way than calling send message multiple times
         async.series([
           function (callback) {
-            sendMessage(controller, teams[t], 'New round starting...', callback)
+            msg = '_________________________ \n';
+            msg += '*New round started*'; //:pencil2:
+            sendMessage(controller, teams[t], msg , callback)
           },
           function (callback) {            
             // @todo: only show extra help to players that are new to the game (score is smaller than X)
@@ -99,14 +101,30 @@ Game.prototype.startGuessingPhase = function (team, callback) {
       sendMessage(controller, team, 'No guesses entered. :cry: ', function(){});
       this.state = 'finished';
     } else {
-      sendMessage(controller, team, 'Choose the Best Answer: ', function () {
-        console.log('Guesses', this.guesses);
-        async.forEachOfSeries(this.guesses, function (guess, user, cb) {
-          var message = guess.id + ' - ' + guess.text;
-          console.log(message);
-          sendMessage(controller, team, message, cb);
-        }, callback);
-      }.bind(this));
+      // sendMessage(controller, team, ':eyes: *Choose the Best Answer: *', function () {
+      //   console.log('Guesses', this.guesses);
+      //   async.forEachOfSeries(this.guesses, function (guess, user, cb) {
+      //     var message = guess.id + ' - ' + guess.text;
+      //     console.log(message);
+      //     sendMessage(controller, team, message, cb);
+      //   }, callback);
+      // }.bind(this));
+
+      msg = '_________________________ \n';
+      msg += '*Vote for the Best Answer * \n'; //:eyes:
+      // @todo: we want to show the letters again here.
+      //msg += '`' + this.letters + '`\n';
+      for (var key in this.guesses) {
+        // @todo: what is the below line here for?
+        // skip loop if the property is from prototype
+        if (!this.guesses.hasOwnProperty(key)) continue;
+
+        var guess = this.guesses[key];      
+        msg += '>' + guess.id + ' - ' + guess.text + ' \n';          
+      }
+      msg += 'Use: */vote number*'
+      msg += '\n';
+      sendMessage(controller, team, msg, function () { callback();}.bind(this));
     }
 
   }.bind(this), (roundLengthGuessing * 1000));
@@ -140,6 +158,11 @@ Game.prototype.startVotingPhase = function(team) {
 
       // Add up all the votes.
       // @todo: this should rather happen automatically as votes are added.
+
+      winner = null;
+      maxVoteCount = 0;
+      fastestAwarded = false;
+
       for (var key in this.guesses) {
         // @todo: what is the below line here for?
         // skip loop if the property is from prototype
@@ -147,12 +170,32 @@ Game.prototype.startVotingPhase = function(team) {
  
         var guess = this.guesses[key];
         guess.voteCount = this.getVoteCount(guess);
+        // Determine the winning score.        
+        if (guess.voteCount > maxVoteCount) {
+          winner = guess;
+          maxVoteCount = guess.voteCount;
+        }
+
+        guess.fastest = false;
+        // Determine the fastest answer that received at least one vote.
+        // We are assuming that we are iterating through the guesses in the order that they are added.
+        // @todo: confirm the order will always be as intended.
+        if (!fastestAwarded && (guess.voteCount > 0)) {
+          guess.fastest = true;
+          fastestAwarded = true;
+        }
       }
 
-     
-     msg = '';
+     msg = '_________________________ \n';
+     msg += '*Round Results* \n';
      // @todo: we want to show the letters again here.
      //msg += '`' + this.letters + '`\n';
+
+     if (winner !== null) {
+        msg += ':trophy: `' + winner.user + ' Wins!` :trophy:';
+        msg += '\n';
+     }
+
      for (var key in this.guesses) {
       // @todo: what is the below line here for?
       // skip loop if the property is from prototype
@@ -167,6 +210,9 @@ Game.prototype.startVotingPhase = function(team) {
       }
       msg += ' - ' + guess.text;
       msg += ' _by ' + guess.user + "_";
+      if (guess.fastest) {
+        msg += ' :hot_pepper:'
+      }
       msg += '\n';
     }
     msg += '\n';
