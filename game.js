@@ -55,7 +55,13 @@ Game.prototype.startRound = function () {
             sendMessage(controller, teams[t], 'New round starting...', callback)
           },
           function (callback) {
-            sendMessage(controller, teams[t], acronym.generateAcronym(), callback)
+            letters = acronym.generateAcronym();
+            // @todo: only show extra help to players that are new to the game (score is smaller than X)
+            message = '`' + letters + '`\n';
+            message += '>Guess what the letters above stand for. Use */guess* and Fill in the blanks: \n';
+            message += '>/guess ' + letters.replace(/\./g,'_____') + '\n';
+            message += '>There are no correct answers, so be creative!';
+            sendMessage(controller, teams[t], message , callback);
           }
         ]);
 
@@ -74,15 +80,20 @@ Game.prototype.startGuessingPhase = function (team, callback) {
   setTimeout(function () {
     // Show Voting screen.
     console.log('Showing voting');
-    sendMessage(controller, team, 'Choose Best Answer: ', function () {
-      console.log('Guesses', this.guesses);
-
-      async.forEachOfSeries(this.guesses, function (guess, user, cb) {
-        var message = guess.id + ' - ' + guess.text;
-        console.log(message);
-        sendMessage(controller, team, message, cb);
-      }, callback);
-    }.bind(this));
+    if (this.guessCount() == 0) {
+      sendMessage(controller, team, 'No guesses entered. :cry: ', function(){});
+      this.state = 'finished';
+    } else {
+      sendMessage(controller, team, 'Choose Best Answer: ', function () {
+        console.log('Guesses', this.guesses);
+        async.forEachOfSeries(this.guesses, function (guess, user, cb) {
+          var message = guess.id + ' - ' + guess.text;
+          console.log(message);
+          sendMessage(controller, team, message, cb);
+        }, callback);
+      
+      }.bind(this));
+    }
 
   }.bind(this), (roundLengthGuessing * 1000));
 
@@ -114,14 +125,14 @@ Game.prototype.startVotingPhase = function (team) {
   }.bind(this), (roundLengthVoting * 1000))
 };
 
-Game.prototype.currentGuessCount = function() {
+Game.prototype.guessCount = function() {
   return Object.keys(this.guesses).length;
 }
 
 Game.prototype.addGuess = function (user, guess) {
   if (this.state === 'guessing') {
     this.guesses[user] = {
-                          id: this.currentGuessCount() + 1, 
+                          id: this.guessCount() + 1, 
                           text: guess,
                           votes: {},
                         };
@@ -135,7 +146,7 @@ Game.prototype.addVote = function (user, vote) {
     // && _.has(this.votes, user)
     // Get the user by the guess ID given
     user_guess = null;
-    
+
     for (var key in this.guesses) {
       // @todo: what is the below line here for?
       // skip loop if the property is from prototype
