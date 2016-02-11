@@ -2,9 +2,10 @@ var acronym = require('./acronym');
 var async = require('async');
 var _ = require('lodash');
 
-var roundLengthGuessing = 20;
-var roundLengthVoting = 20;
+var roundLengthGuessing = 5;
+var roundLengthVoting = 5;
 var roundLengthResults = 60; // @todo: implement this pause between showing the results and starting the next round
+var gameCounter = 0;
 
 var Game = function (controller) {
   this.setNewGame();
@@ -39,26 +40,44 @@ Game.prototype.setNewGame = function () {
   this.votes = {};
   this.gameInterval = null;
   this.letters = acronym.generateAcronym();
-  console.log('New game set.')
+  console.log('New game set: ' + gameCounter)
 };
 
 Game.prototype.addDummyGuesses = function() {
-  this.addGuess('FredC', 'My Test Answer');
-  this.addGuess('Joe', 'Another Test Answer');
-  console.log('Adding dummy guesses.');
+  if (gameCounter == 1) {
+    // Acronym = B.R.T.
+    this.addGuess('Fred C', 'Better remind them');
+    this.addGuess('Joe', 'Balloons remained tethered');
+    this.addGuess('Julie', 'Big Rats Tired');
+    console.log('Adding dummy guesses.');
+  } else if (gameCounter == 2) {
+    // Acronym = S.D.H.
+    this.addGuess('Joe', 'seven deadly hippos');
+    this.addGuess('Fred C', 'Swim Down Happily');    
+    this.addGuess('Julie', 'Singing does help ');
+    console.log('Adding dummy guesses.');
+  }
 }
 
 Game.prototype.addDummyVotes = function() {
-  this.addVote('FredC', '1');
-  this.addVote('FredC', '2');
-  this.addVote('FredC', '1');
-  console.log('Adding dummy votes.');
+  if (gameCounter == 1) {
+    this.addVote('', '1');
+    this.addVote('', '2');
+    this.addVote('', '1');
+    console.log('Adding dummy votes.');
+  } else if (gameCounter == 2) {
+    this.addVote('', '1');
+    this.addVote('', '3');
+    this.addVote('', '3');
+    console.log('Adding dummy votes.');
+  }
 }
 
 Game.prototype.startRound = function () {
   var controller = this.controller;
   this.votes = {};
   this.guesses = {};
+  gameCounter++;
 
   controller.storage.teams.all(function (err, teams) {
     for (var t in teams) {
@@ -73,6 +92,13 @@ Game.prototype.startRound = function () {
           function (callback) {            
             // @todo: only show extra help to players that are new to the game (score is smaller than X)
             letters = acronym.generateAcronym(); // @todo: I would instead like to refer to 'this.letters', but I get an undefined error if I try that.
+
+            //Dummy data overrides
+            if (gameCounter == 1) {
+              letters = "B.R.T.";
+            } else if (gameCounter == 2) {
+              letters = "S.D.H.";
+            }
             message = '`' + letters + '`\n';
             message += '>Guess what the letters above stand for. Use */guess* and Fill in the blanks: \n';
             message += '>/guess ' + letters.replace(/\./g,'_____') + '\n';
