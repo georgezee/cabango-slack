@@ -4,7 +4,7 @@ var _ = require('lodash');
 
 var roundLengthGuessing = 20;
 var roundLengthVoting = 20;
-var roundLengthResults = 60;
+var roundLengthResults = 60; // @todo: implement this pause between showing the results and starting the next round
 
 var Game = function (controller) {
   this.setNewGame();
@@ -38,8 +38,22 @@ Game.prototype.setNewGame = function () {
   this.guesses = {};
   this.votes = {};
   this.gameInterval = null;
+  this.letters = acronym.generateAcronym();
   console.log('New game set.')
 };
+
+Game.prototype.addDummyGuesses = function() {
+  this.addGuess('FredC', 'My Test Answer');
+  this.addGuess('Joe', 'Another Test Answer');
+  console.log('Adding dummy guesses.');
+}
+
+Game.prototype.addDummyVotes = function() {
+  this.addVote('FredC', '1');
+  this.addVote('FredC', '2');
+  this.addVote('FredC', '1');
+  console.log('Adding dummy votes.');
+}
 
 Game.prototype.startRound = function () {
   var controller = this.controller;
@@ -54,9 +68,9 @@ Game.prototype.startRound = function () {
           function (callback) {
             sendMessage(controller, teams[t], 'New round starting...', callback)
           },
-          function (callback) {
-            letters = acronym.generateAcronym();
+          function (callback) {            
             // @todo: only show extra help to players that are new to the game (score is smaller than X)
+            letters = acronym.generateAcronym(); // @todo: I would instead like to refer to 'this.letters', but I get an undefined error if I try that.
             message = '`' + letters + '`\n';
             message += '>Guess what the letters above stand for. Use */guess* and Fill in the blanks: \n';
             message += '>/guess ' + letters.replace(/\./g,'_____') + '\n';
@@ -76,6 +90,7 @@ Game.prototype.startRound = function () {
 Game.prototype.startGuessingPhase = function (team, callback) {
   var controller = this.controller;
   this.state = 'guessing';
+  this.addDummyGuesses();
 
   setTimeout(function () {
     // Show Voting screen.
@@ -84,14 +99,13 @@ Game.prototype.startGuessingPhase = function (team, callback) {
       sendMessage(controller, team, 'No guesses entered. :cry: ', function(){});
       this.state = 'finished';
     } else {
-      sendMessage(controller, team, 'Choose Best Answer: ', function () {
+      sendMessage(controller, team, 'Choose the Best Answer: ', function () {
         console.log('Guesses', this.guesses);
         async.forEachOfSeries(this.guesses, function (guess, user, cb) {
           var message = guess.id + ' - ' + guess.text;
           console.log(message);
           sendMessage(controller, team, message, cb);
         }, callback);
-      
       }.bind(this));
     }
 
@@ -99,23 +113,85 @@ Game.prototype.startGuessingPhase = function (team, callback) {
 
 };
 
-Game.prototype.startVotingPhase = function (team) {
+// @todo: this should be a method on the Guess object
+Game.prototype.getVoteCount = function(guess) {
+  return this.votes[guess.user];
+}
+
+Game.prototype.startVotingPhase = function(team) {
   var controller = this.controller;
   this.state = 'voting';
+  this.addDummyVotes();
 
   setTimeout(function () {
     // Show Results screen.
     console.log('Showing results');
     if (!_.isEmpty(this.votes)) {
-      var pairs = _.toPairs(this.votes);
-      var winner = _.maxBy(pairs, function (score) {
-        return score[1];
-      })[0];
+      // var pairs = _.toPairs(this.votes);
+      // var winner = _.maxBy(pairs, function (score) {
+      //   return score[1];
+      // })[0];
 
-      sendMessage(controller, team, 'Winner: ' + winner, function () {
+      // sendMessage(controller, team, 'Winner: ' + winner, function () {
+      //   console.log('Finished');
+      //   this.state = 'finished';
+      // }.bind(this));
+
+
+      // Add up all the votes.
+      // @todo: this should rather happen automatically as votes are added.
+      for (var key in this.guesses) {
+        // @todo: what is the below line here for?
+        // skip loop if the property is from prototype
+        if (!this.guesses.hasOwnProperty(key)) continue;
+ 
+        var guess = this.guesses[key];
+        guess.voteCount = this.getVoteCount(guess);
+      }
+
+     
+     msg = '';
+     // @todo: we want to show the letters again here.
+     //msg += '`' + this.letters + '`\n';
+     for (var key in this.guesses) {
+      // @todo: what is the below line here for?
+      // skip loop if the property is from prototype
+      if (!this.guesses.hasOwnProperty(key)) continue;
+
+      var guess = this.guesses[key];      
+      // @todo: there should be a more elegant way of handling plurals
+      if (guess.voteCount == 1) { 
+        msg += '>*' + guess.voteCount + ' vote*';
+      } else {
+        msg += '>*' + guess.voteCount + ' votes*';
+      }
+      msg += ' - ' + guess.text;
+      msg += ' _by ' + guess.user + "_";
+      msg += '\n';
+    }
+    msg += '\n';
+    
+    sendMessage(controller, team, msg, function () {
         console.log('Finished');
         this.state = 'finished';
       }.bind(this));
+
+
+      // async.forEachOfSeries(this.guesses, function (guess, user, cb) {
+      //   var message = guess.text;
+      //   // @todo: there should be a more elegant way of handling plurals
+      //   if (guess.voteCount == 1) { 
+      //     message += ' - ' + guess.voteCount + ' vote';
+      //   } else {
+      //     message += ' - ' + guess.voteCount + ' votes';
+      //   }
+
+      //   console.log(message);
+      //   sendMessage(controller, team, message, cb);
+      // }, function() {
+      //   console.log('Finished');
+      //   this.state = 'finished';
+      // }.bind(this)); // @todo: I don't really understand what I'm doing with these callbacks and bind statements, but hey, it works!
     } else {
       sendMessage(controller, team, 'No Votes :cry:', function () {
         console.log('Finished');
@@ -134,6 +210,7 @@ Game.prototype.addGuess = function (user, guess) {
     this.guesses[user] = {
                           id: this.guessCount() + 1, 
                           text: guess,
+                          user: user, // @todo: it may be better to store the user id inside the vote, instead of in this.guesses[user]
                           votes: {},
                         };
     this.votes[user] = 0;
@@ -160,7 +237,7 @@ Game.prototype.addVote = function (user, vote) {
 
     if (user_guess !== null) {
       this.votes[user_guess]++;
-      console.log('Votes', this.votes);
+      console.log('Votes', this.votes); // @todo: record who voted, so we can avoid duplicate votes.
       console.log("Vote accepted.");
       return "accepted";
     } else {
