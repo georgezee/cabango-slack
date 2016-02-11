@@ -2,11 +2,12 @@ var acronym = require('./acronym');
 var async = require('async');
 var _ = require('lodash');
 
+var roundLengthGuessing = 20;
+var roundLengthVoting = 20;
+var roundLengthResults = 60;
+
 var Game = function (controller) {
-  this.state = 'created';
-  this.guesses = {};
-  this.votes = {};
-  this.gameInterval = null;
+  this.setNewGame();
   this.controller = controller;
 };
 
@@ -24,8 +25,20 @@ Game.prototype.startGame = function () {
 
 Game.prototype.stopGame = function () {
   if (this.gameInterval) {
-    clearInterval(this.gameInterval);
+    clearInterval(this.gameInterval); 
   }
+  console.log('Game stopped.')
+};
+
+Game.prototype.setNewGame = function () {
+  if (this.gameInterval) {
+    clearInterval(this.gameInterval); 
+  }
+  this.state = 'created';
+  this.guesses = {};
+  this.votes = {};
+  this.gameInterval = null;
+  console.log('New game set.')
 };
 
 Game.prototype.startRound = function () {
@@ -59,17 +72,19 @@ Game.prototype.startGuessingPhase = function (team, callback) {
   this.state = 'guessing';
 
   setTimeout(function () {
+    // Show Voting screen.
+    console.log('Showing voting');
     sendMessage(controller, team, 'Choose Best Answer: ', function () {
       console.log('Guesses', this.guesses);
 
       async.forEachOfSeries(this.guesses, function (guess, user, cb) {
-        var message = user + ' - ' + guess;
+        var message = guess.id + ' - ' + guess.text;
         console.log(message);
         sendMessage(controller, team, message, cb);
       }, callback);
     }.bind(this));
 
-  }.bind(this), 60000);
+  }.bind(this), (roundLengthGuessing * 1000));
 
 };
 
@@ -78,6 +93,8 @@ Game.prototype.startVotingPhase = function (team) {
   this.state = 'voting';
 
   setTimeout(function () {
+    // Show Results screen.
+    console.log('Showing results');
     if (!_.isEmpty(this.votes)) {
       var pairs = _.toPairs(this.votes);
       var winner = _.maxBy(pairs, function (score) {
@@ -89,26 +106,56 @@ Game.prototype.startVotingPhase = function (team) {
         this.state = 'finished';
       }.bind(this));
     } else {
-      sendMessage(controller, team, 'No Votes :(', function () {
+      sendMessage(controller, team, 'No Votes :cry:', function () {
         console.log('Finished');
         this.state = 'finished';
       }.bind(this));
     }
-  }.bind(this), 45000)
+  }.bind(this), (roundLengthVoting * 1000))
 };
+
+Game.prototype.currentGuessCount = function() {
+  return Object.keys(this.guesses).length;
+}
 
 Game.prototype.addGuess = function (user, guess) {
   if (this.state === 'guessing') {
-    this.guesses[user] = guess;
+    this.guesses[user] = {
+                          id: this.currentGuessCount() + 1, 
+                          text: guess,
+                          votes: {},
+                        };
     this.votes[user] = 0;
     console.log('Guesses', this.guesses);
   }
 };
 
-Game.prototype.addVote = function (user) {
-  if (this.state === 'voting' && _.has(this.votes, user)) {
-    this.votes[user]++;
-    console.log('Votes', this.votes);
+Game.prototype.addVote = function (user, vote) {
+  if (this.state === 'voting') {
+    // && _.has(this.votes, user)
+    // Get the user by the guess ID given
+    user_guess = null;
+    
+    for (var key in this.guesses) {
+      // @todo: what is the below line here for?
+      // skip loop if the property is from prototype
+      if (!this.guesses.hasOwnProperty(key)) continue;
+
+      var guess = this.guesses[key];
+      if (guess.id == vote) {
+        user_guess = key;
+      }
+    }
+
+    if (user_guess !== null) {
+      this.votes[user_guess]++;
+      console.log('Votes', this.votes);
+      console.log("Vote accepted.");
+      return "accepted";
+    } else {
+      console.log("Vote rejected.");
+      return "rejected";
+    }
   }
 };
 
