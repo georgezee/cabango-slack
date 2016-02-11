@@ -36,7 +36,6 @@ controller.on('slash_command',function(bot, message) {
 
     case '/guess':
       game.addGuess(message.user_name, message.text);
-      bot.replyPrivate('Guessing: ' + message.text);
       break;
 
     case '/game':
@@ -47,6 +46,8 @@ controller.on('slash_command',function(bot, message) {
       }
       break;
   }
+
+  bot.replyPrivate(message.text);
 });
 
 
