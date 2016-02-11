@@ -46,8 +46,7 @@ controller.on('slash_command',function(bot, message) {
       }
       break;
   }
-
-  bot.replyPrivate(message.text);
+  bot.replyPublic(message, 'Command: ' + message.command + ' Message: ' + message.text);
 });
 
 
