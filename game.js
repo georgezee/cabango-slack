@@ -46,43 +46,54 @@ Game.prototype.startRound = function () {
           }
         ]);
 
-        this.state = 'guessing';
-
-        setTimeout(function () {
-          sendMessage(controller, teams[t], 'Choose Best Answer: ', function () {
-            console.log('Guesses', this.guesses);
-
-            async.forEachOfSeries(this.guesses, function (guess, user, callback) {
-              var message = user + ' - ' + guess;
-              console.log(message);
-              sendMessage(controller, teams[t], message, callback);
-            })
-          }.bind(this));
-
-          this.state = 'voting';
-
-          setTimeout(function () {
-            if (this.votes) {
-              var pairs = _.toPairs(this.votes);
-              var winner = _.maxBy(pairs, function (score) {
-                return score[1];
-              })[0];
-
-              sendMessage(controller, teams[t], 'Winner: ' + winner, function () {
-                console.log('Finished');
-                this.state = 'finished';
-              }.bind(this));
-            } else {
-              sendMessage(controller, teams[t], 'No Votes :(', function () {
-                console.log('Finished');
-                this.state = 'finished';
-              }.bind(this));
-            }
-          }.bind(this), 45000)
-        }.bind(this), 60000);
+        this.startGuessingPhase(function () {
+          this.startVotingPhase();
+        }.bind(this));
       }
     }
   }.bind(this));
+};
+
+Game.prototype.startGuessingPhase = function (callback) {
+  var controller = this.controller;
+  this.state = 'guessing';
+
+  setTimeout(function (callback) {
+    sendMessage(controller, teams[t], 'Choose Best Answer: ', function () {
+      console.log('Guesses', this.guesses);
+
+      async.forEachOfSeries(this.guesses, function (guess, user, callback) {
+        var message = user + ' - ' + guess;
+        console.log(message);
+        sendMessage(controller, teams[t], message, callback);
+      })
+    }.bind(this));
+    callback();
+  }.bind(this), 60000);
+
+};
+
+Game.prototype.startVotingPhase = function () {
+  this.state = 'voting';
+
+  setTimeout(function () {
+    if (this.votes) {
+      var pairs = _.toPairs(this.votes);
+      var winner = _.maxBy(pairs, function (score) {
+        return score[1];
+      })[0];
+
+      sendMessage(controller, teams[t], 'Winner: ' + winner, function () {
+        console.log('Finished');
+        this.state = 'finished';
+      }.bind(this));
+    } else {
+      sendMessage(controller, teams[t], 'No Votes :(', function () {
+        console.log('Finished');
+        this.state = 'finished';
+      }.bind(this));
+    }
+  }.bind(this), 45000)
 };
 
 Game.prototype.addGuess = function (user, guess) {
