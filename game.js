@@ -39,41 +39,42 @@ Game.prototype.startRound = function () {
         // TODO: Find a better way than calling send message multiple times
         async.series([
           function (callback) {
-            sendMessage(controller, teams[t], 'New Game starting...', callback)
+            sendMessage(controller, teams[t], 'New round starting...', callback)
           },
           function (callback) {
             sendMessage(controller, teams[t], acronym.generateAcronym(), callback)
           }
         ]);
 
-        this.startGuessingPhase(function () {
-          this.startVotingPhase();
+        this.startGuessingPhase(teams[t], function () {
+          this.startVotingPhase(teams[t]);
         }.bind(this));
       }
     }
   }.bind(this));
 };
 
-Game.prototype.startGuessingPhase = function (callback) {
+Game.prototype.startGuessingPhase = function (team, callback) {
   var controller = this.controller;
   this.state = 'guessing';
 
-  setTimeout(function (callback) {
-    sendMessage(controller, teams[t], 'Choose Best Answer: ', function () {
+  setTimeout(function () {
+    sendMessage(controller, team, 'Choose Best Answer: ', function () {
       console.log('Guesses', this.guesses);
 
-      async.forEachOfSeries(this.guesses, function (guess, user, callback) {
+      async.forEachOfSeries(this.guesses, function (guess, user, cb) {
         var message = user + ' - ' + guess;
         console.log(message);
-        sendMessage(controller, teams[t], message, callback);
-      })
+        sendMessage(controller, team, message, cb);
+      }, callback);
     }.bind(this));
-    callback();
-  }.bind(this), 60000);
+
+  }.bind(this), 600);
 
 };
 
-Game.prototype.startVotingPhase = function () {
+Game.prototype.startVotingPhase = function (team) {
+  var controller = this.controller;
   this.state = 'voting';
 
   setTimeout(function () {
@@ -83,17 +84,17 @@ Game.prototype.startVotingPhase = function () {
         return score[1];
       })[0];
 
-      sendMessage(controller, teams[t], 'Winner: ' + winner, function () {
+      sendMessage(controller, team, 'Winner: ' + winner, function () {
         console.log('Finished');
         this.state = 'finished';
       }.bind(this));
     } else {
-      sendMessage(controller, teams[t], 'No Votes :(', function () {
+      sendMessage(controller, team, 'No Votes :(', function () {
         console.log('Finished');
         this.state = 'finished';
       }.bind(this));
     }
-  }.bind(this), 45000)
+  }.bind(this), 450)
 };
 
 Game.prototype.addGuess = function (user, guess) {
