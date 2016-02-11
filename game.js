@@ -2,13 +2,34 @@ var acronym = require('./acronym');
 var async = require('async');
 var _ = require('lodash');
 
-var Game = function () {
+var Game = function (controller) {
   this.state = 'created';
   this.guesses = {};
   this.votes = {};
+  this.gameInterval = null;
+  this.controller = controller;
 };
 
-Game.prototype.startGame = function (controller) {
+
+Game.prototype.startGame = function () {
+  this.startRound();
+
+  this.gameInterval = setInterval(function () {
+    if (this.state === 'finished') {
+      this.state = 'starting';
+      this.startRound();
+    }
+  }.bind(this), 1000);
+};
+
+Game.prototype.stopGame = function () {
+  if (this.gameInterval) {
+    clearInterval(this.gameInterval);
+  }
+};
+
+Game.prototype.startRound = function () {
+  var controller = this.controller;
   this.votes = {};
   this.guesses = {};
 
@@ -45,7 +66,7 @@ Game.prototype.startGame = function (controller) {
             var winner = _.maxBy(pairs, function (score) {
               return score[1];
             })[0];
-            
+
             sendMessage(controller, teams[t], 'Winner: ' + winner, function () {
                console.log('Finished');
             });

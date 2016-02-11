@@ -12,19 +12,10 @@ var controller = Botkit.slackbot({
   }
 );
 
-var game = new Game();
+var game = new Game(controller);
 
 controller.setupWebserver(process.env.PORT || 5000, function (err, webserver) {
   controller.createWebhookEndpoints(webserver);
-
-  game.startGame(controller);
-
-  setInterval(function () {
-    if (game.state === 'finished') {
-      game.state = 'starting';
-      game.startGame(controller);
-    }
-  }, 1000);
 
   controller.createOauthEndpoints(controller.webserver, function (err, req, res) {
     if (err) {
@@ -45,6 +36,14 @@ controller.on('slash_command',function(bot, message) {
 
     case '/guess':
       game.addGuess(message.user_name, message.text);
+      break;
+
+    case '/game':
+      if (message.text === 'start') {
+        game.startGame();
+      } else if (message.text == 'stop') {
+        game.stopGame();
+      }
       break;
   }
   bot.replyPublic(message, 'Command: ' + message.command + ' Message: ' + message.text);
