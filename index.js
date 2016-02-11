@@ -32,21 +32,24 @@ controller.on('slash_command',function(bot, message) {
   switch (message.command) {
     case '/vote':
       game.addVote(message.text);
+      bot.replyPrivate(message, 'Voting for: ' + message.text);
       break;
 
     case '/guess':
       game.addGuess(message.user_name, message.text);
+      bot.replyPrivate(message, 'Added answer: ' + message.text);
       break;
 
     case '/game':
       if (message.text === 'start') {
         game.startGame();
+        bot.replyPublic(message, 'Starting Game');
       } else if (message.text == 'stop') {
+        bot.replyPublic(message, 'Stopping Game');
         game.stopGame();
       }
       break;
   }
-  bot.replyPublic(message, 'Command: ' + message.command + ' Message: ' + message.text);
 });
 
 

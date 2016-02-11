@@ -62,16 +62,22 @@ Game.prototype.startRound = function () {
           this.state = 'voting';
 
           setTimeout(function () {
-            var pairs = _.toPairs(this.votes);
-            var winner = _.maxBy(pairs, function (score) {
-              return score[1];
-            })[0];
+            if (this.votes) {
+              var pairs = _.toPairs(this.votes);
+              var winner = _.maxBy(pairs, function (score) {
+                return score[1];
+              })[0];
 
-            sendMessage(controller, teams[t], 'Winner: ' + winner, function () {
-               console.log('Finished');
-              this.state = 'finished';
-            }.bind(this));
-
+              sendMessage(controller, teams[t], 'Winner: ' + winner, function () {
+                console.log('Finished');
+                this.state = 'finished';
+              }.bind(this));
+            } else {
+              sendMessage(controller, teams[t], 'No Votes :(', function () {
+                console.log('Finished');
+                this.state = 'finished';
+              }.bind(this));
+            }
           }.bind(this), 45000)
         }.bind(this), 60000);
       }
