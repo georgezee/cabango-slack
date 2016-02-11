@@ -2,8 +2,8 @@ var acronym = require('./acronym');
 var async = require('async');
 var _ = require('lodash');
 
-var roundLengthGuessing = 5;
-var roundLengthVoting = 5;
+var roundLengthGuessing = 20;
+var roundLengthVoting = 20;
 var roundLengthResults = 60; // @todo: implement this pause between showing the results and starting the next round
 var gameCounter = 0;
 
@@ -14,6 +14,7 @@ var Game = function (controller) {
 
 
 Game.prototype.startGame = function () {
+  gameCounter = 0;
   this.startRound();
 
   this.gameInterval = setInterval(function () {

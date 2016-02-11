@@ -43,9 +43,9 @@ controller.on('slash_command',function(bot, message) {
     case '/game':
       if (message.text === 'start') {
         game.startGame();
-        bot.replyPublic(message, 'Starting Game');
+        bot.replyPublic(message, 'Starting Cabango, get ready ...');
       } else if (message.text == 'stop') {
-        bot.replyPublic(message, 'Stopping Game');
+        bot.replyPublic(message, 'Bye!');
         game.stopGame();
       }
       break;
@@ -95,7 +95,7 @@ controller.hears('game', 'direct_message,direct_mention,mention', function (bot,
   var matches = message.text.match(/game (.*)/i);
 
   if (matches === null) { return; }
-  
+
   var command_text = matches[1];
 
   if (command_text === 'start') {
