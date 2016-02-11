@@ -77,7 +77,7 @@ Game.prototype.startVotingPhase = function () {
   this.state = 'voting';
 
   setTimeout(function () {
-    if (this.votes) {
+    if (!_.isEmpty(this.votes)) {
       var pairs = _.toPairs(this.votes);
       var winner = _.maxBy(pairs, function (score) {
         return score[1];
