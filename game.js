@@ -69,9 +69,8 @@ Game.prototype.startRound = function () {
 
             sendMessage(controller, teams[t], 'Winner: ' + winner, function () {
                console.log('Finished');
-            });
-
-            this.state = 'finished';
+              this.state = 'finished';
+            }.bind(this));
 
           }.bind(this), 45000)
         }.bind(this), 60000);
