@@ -69,7 +69,7 @@ Game.prototype.startGuessingPhase = function (team, callback) {
       }, callback);
     }.bind(this));
 
-  }.bind(this), 600);
+  }.bind(this), 60000);
 
 };
 
@@ -94,7 +94,7 @@ Game.prototype.startVotingPhase = function (team) {
         this.state = 'finished';
       }.bind(this));
     }
-  }.bind(this), 450)
+  }.bind(this), 45000)
 };
 
 Game.prototype.addGuess = function (user, guess) {
