@@ -105,7 +105,7 @@ Game.prototype.startRound = function () {
             message += '>Guess what the letters above stand for. Use */guess* and Fill in the blanks: \n';
             message += '>/guess ' + letters.replace(/\./g,'_____') + '\n';
             message += '>There are no correct answers, so be creative!\n';
-            message += '>_' + roundLengthGuessing + ' seconds left'_;
+            message += '>_' + roundLengthGuessing + ' seconds left_';
             sendMessage(controller, teams[t], message , callback);
           }
         ]);
@@ -152,7 +152,7 @@ Game.prototype.startGuessingPhase = function (team, callback) {
         msg += '>' + guess.id + ' - ' + guess.text + ' \n';          
       }
       msg += 'Use: */vote number*\n'
-      msg += '_' + roundLengthVoting + ' seconds left'_;
+      msg += '_' + roundLengthVoting + ' seconds left_';
       msg += '\n';
       sendMessage(controller, team, msg, function () { callback();}.bind(this));
     }
