@@ -2,8 +2,9 @@ var acronym = require('./acronym');
 var async = require('async');
 var _ = require('lodash');
 
-var roundLengthGuessing = 20;
-var roundLengthVoting = 20;
+// @todo: make the round lengths configurable via a slash command
+var roundLengthGuessing = 60;
+var roundLengthVoting = 40;
 var roundLengthResults = 60; // @todo: implement this pause between showing the results and starting the next round
 var gameCounter = 0;
 
@@ -103,7 +104,8 @@ Game.prototype.startRound = function () {
             message = '`' + letters + '`\n';
             message += '>Guess what the letters above stand for. Use */guess* and Fill in the blanks: \n';
             message += '>/guess ' + letters.replace(/\./g,'_____') + '\n';
-            message += '>There are no correct answers, so be creative!';
+            message += '>There are no correct answers, so be creative!\n';
+            message += '>_' + roundLengthGuessing + ' seconds left'_;
             sendMessage(controller, teams[t], message , callback);
           }
         ]);
@@ -149,7 +151,8 @@ Game.prototype.startGuessingPhase = function (team, callback) {
         var guess = this.guesses[key];      
         msg += '>' + guess.id + ' - ' + guess.text + ' \n';          
       }
-      msg += 'Use: */vote number*'
+      msg += 'Use: */vote number*\n'
+      msg += '_' + roundLengthVoting + ' seconds left'_;
       msg += '\n';
       sendMessage(controller, team, msg, function () { callback();}.bind(this));
     }
