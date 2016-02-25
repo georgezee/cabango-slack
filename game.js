@@ -3,9 +3,9 @@ var async = require('async');
 var _ = require('lodash');
 
 // @todo: make the round lengths configurable via a slash command
-var roundLengthGuessing = 60;
-var roundLengthVoting = 40;
-var roundLengthResults = 60;
+var roundLengthGuessing = 60; //standard: 60
+var roundLengthVoting = 40; //standard: 40
+var roundLengthResults = 60; //standard: 60
 var gameCounter = 0;
 
 var Game = function (controller) {
@@ -21,6 +21,9 @@ Game.prototype.startGame = function () {
   this.gameInterval = setInterval(function () {
     if (this.state === 'finished') {
       this.state = 'starting';
+
+      this.setTimeReminder(roundLengthResults);
+
       setTimeout(function () {
         this.startRound();
       }.bind(this), (roundLengthResults * 1000));
@@ -77,6 +80,35 @@ Game.prototype.addDummyVotes = function() {
   }
 }
 
+// Set a reminder X seconds before round ends that it will be ending soon.
+Game.prototype.setTimeReminder = function(roundTime) {
+  timeUntilReminder =  roundTime - 10;
+  if (timeUntilReminder >= 0) {
+    setTimeout(function () {
+      this.sendTimeReminder()
+    }.bind(this), (timeUntilReminder * 1000));
+  }
+}
+
+// Send the notification.
+Game.prototype.sendTimeReminder = function () {
+  var controller = this.controller;
+
+  console.log("Sending time reminder, 10s left.")
+  controller.storage.teams.all(function (err, teams) {
+    for (var t in teams) {
+      if (teams[t].incoming_webhook) {
+        async.series([
+          function (callback) {
+            msg += '_10 seconds left_'; //:pencil2:
+            sendMessage(controller, teams[t], msg , callback)
+          },
+        ]);
+      }
+    }
+  }.bind(this));
+};
+
 Game.prototype.startRound = function () {
   var controller = this.controller;
   this.votes = {};
@@ -120,10 +152,13 @@ Game.prototype.startRound = function () {
   }.bind(this));
 };
 
+
 Game.prototype.startGuessingPhase = function (team, callback) {
   var controller = this.controller;
   this.state = 'guessing';
   this.addDummyGuesses();
+
+  this.setTimeReminder(roundLengthGuessing);
 
   setTimeout(function () {
     // Show Voting screen.
@@ -172,6 +207,8 @@ Game.prototype.startVotingPhase = function(team) {
   var controller = this.controller;
   this.state = 'voting';
   this.addDummyVotes();
+
+  this.setTimeReminder(roundLengthVoting);
 
   setTimeout(function () {
     // Show Results screen.
