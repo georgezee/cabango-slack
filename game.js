@@ -5,7 +5,7 @@ var _ = require('lodash');
 // @todo: make the round lengths configurable via a slash command
 var roundLengthGuessing = 60;
 var roundLengthVoting = 40;
-var roundLengthResults = 60; // @todo: implement this pause between showing the results and starting the next round
+var roundLengthResults = 60;
 var gameCounter = 0;
 
 var Game = function (controller) {
@@ -21,7 +21,9 @@ Game.prototype.startGame = function () {
   this.gameInterval = setInterval(function () {
     if (this.state === 'finished') {
       this.state = 'starting';
-      this.startRound();
+      setTimeout(function () {
+        this.startRound();
+      }.bind(this), (roundLengthResults * 1000));
     }
   }.bind(this), 1000);
 };
