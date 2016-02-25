@@ -100,7 +100,7 @@ Game.prototype.sendTimeReminder = function () {
       if (teams[t].incoming_webhook) {
         async.series([
           function (callback) {
-            msg += '_10 seconds left_'; //:pencil2:
+            msg = '_10 seconds left_ \n'; //:pencil2:
             sendMessage(controller, teams[t], msg , callback)
           },
         ]);
@@ -122,7 +122,7 @@ Game.prototype.startRound = function () {
         async.series([
           function (callback) {
             msg = '_________________________ \n';
-            msg += '*New round started*'; //:pencil2:
+            msg += '*New round started* \n'; //:pencil2:
             sendMessage(controller, teams[t], msg , callback)
           },
           function (callback) {            
